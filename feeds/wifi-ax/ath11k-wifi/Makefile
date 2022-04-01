@@ -30,6 +30,7 @@ ALLWIFIBOARDS:= \
 	cig-wf194c4 \
 	cig-wf196 \
 	cybertan-eww622-a1 \
+	cybertan-eww610-a1 \
 	edgecore-eap101 \
 	gl-ax1800 \
 	sercomm-wallaby \
@@ -191,6 +192,7 @@ $(eval $(call generate-ath11k-wifi-package,cig-wf194c,Cigtech WF194c))
 $(eval $(call generate-ath11k-wifi-package,cig-wf194c4,Cigtech WF194c4))
 $(eval $(call generate-ath11k-wifi-package,cig-wf196,Cigtech WF196))
 $(eval $(call generate-ath11k-wifi-package,cybertan-eww622-a1,CyberTan EWW622 A1))
+$(eval $(call generate-ath11k-wifi-package,cybertan-eww610-a1,CyberTan EWW610 A1))
 $(eval $(call generate-ath11k-wifi-package,sercomm-wallaby,Sercomm Kiwi))
 $(eval $(call generate-ath11k-wifi-package,wallys-dr6018,Wallys DR6018))
 $(eval $(call generate-ath11k-wifi-package,wallys-dr6018-v4,Wallys DR6018 V4))
