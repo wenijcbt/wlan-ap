@@ -99,3 +99,12 @@ define Device/yuncore_ax840
   DEVICE_PACKAGES := ath11k-wifi-yuncore-ax840 uboot-env
 endef
 TARGET_DEVICES += yuncore_ax840
+
+define Device/cybertan_eww610_a1
+  DEVICE_TITLE := Cybertan EWW610-A1
+  DEVICE_DTS := qcom-ipq6018-cybertan-eww610-a1
+  DEVICE_DTS_CONFIG := config@cp03-c1
+  SUPPORTED_DEVICES := cybertan,eww610-a1
+  DEVICE_PACKAGES := ath11k-wifi-cybertan-eww610-a1 uboot-envtools
+endef
+TARGET_DEVICES += cybertan_eww610_a1

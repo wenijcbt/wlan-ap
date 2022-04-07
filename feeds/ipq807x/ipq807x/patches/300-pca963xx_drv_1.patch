@@ -1,0 +1,145 @@
+diff --git a/drivers/leds/leds-pca963x.c b/drivers/leds/leds-pca963x.c
+index 41f269f..4b2da2e
+--- a/drivers/leds/leds-pca963x.c
++++ b/drivers/leds/leds-pca963x.c
+@@ -108,6 +108,9 @@ struct pca963x {
+ 	struct mutex mutex;
+ 	struct i2c_client *client;
+ 	struct pca963x_led *leds;
++
++	int custom;
++	int red, green, blue;
+ };
+ 
+ struct pca963x_led {
+@@ -161,6 +164,8 @@ static void pca963x_blink_work(struct pca963x_led *pca963x)
+ 							PCA963X_MODE2);
+ 	int shift = 2 * (pca963x->led_num % 4);
+ 	u8 mask = 0x3 << shift;
++	u8 brightness = i2c_smbus_read_byte_data(pca963x->chip->client,
++			PCA963X_PWM_BASE + pca963x->led_num);
+ 
+ 	i2c_smbus_write_byte_data(pca963x->chip->client,
+ 			pca963x->chip->chipdef->grppwm,	pca963x->gdc);
+@@ -177,6 +182,12 @@ static void pca963x_blink_work(struct pca963x_led *pca963x)
+ 	if ((ledout & mask) != (PCA963X_LED_GRP_PWM << shift))
+ 		i2c_smbus_write_byte_data(pca963x->chip->client, ledout_addr,
+ 			(ledout & ~mask) | (PCA963X_LED_GRP_PWM << shift));
++
++	if (brightness == 0) {
++		i2c_smbus_write_byte_data(pca963x->chip->client,
++			PCA963X_PWM_BASE + pca963x->led_num,
++			255/3);
++	}
+ 	mutex_unlock(&pca963x->chip->mutex);
+ }
+ 
+@@ -185,6 +196,10 @@ static void pca963x_work(struct work_struct *work)
+ 	struct pca963x_led *pca963x = container_of(work,
+ 		struct pca963x_led, work);
+ 
++	if (pca963x->chip->custom) {
++		return;
++	}
++
+ 	switch (pca963x->cmd) {
+ 	case BRIGHTNESS_SET:
+ 		pca963x_brightness_work(pca963x);
+@@ -212,6 +227,45 @@ static void pca963x_led_set(struct led_classdev *led_cdev,
+ 	schedule_work(&pca963x->work);
+ }
+ 
++static void pca963x_red_led_set(struct led_classdev *led_cdev,
++	enum led_brightness value)
++{
++	struct pca963x_led *pca963x;
++	pca963x = container_of(led_cdev, struct pca963x_led, led_cdev);
++
++	if (!pca963x->chip->custom) {
++		pca963x->chip->red = value;
++		pca963x_led_set(led_cdev, value);
++	}
++	return;
++}
++
++static void pca963x_green_led_set(struct led_classdev *led_cdev,
++	enum led_brightness value)
++{
++	struct pca963x_led *pca963x;
++	pca963x = container_of(led_cdev, struct pca963x_led, led_cdev);
++
++	if (!pca963x->chip->custom) {
++		pca963x->chip->green = value;
++		pca963x_led_set(led_cdev, value);
++	}
++	return;
++}
++
++static void pca963x_blue_led_set(struct led_classdev *led_cdev,
++	enum led_brightness value)
++{
++	struct pca963x_led *pca963x;
++	pca963x = container_of(led_cdev, struct pca963x_led, led_cdev);
++
++	if (!pca963x->chip->custom) {
++		pca963x->chip->blue = value;
++		pca963x_led_set(led_cdev, value);
++	}
++	return;
++}
++
+ static int pca963x_blink_set(struct led_classdev *led_cdev,
+ 		unsigned long *delay_on, unsigned long *delay_off)
+ {
+@@ -221,6 +275,10 @@ static int pca963x_blink_set(struct led_classdev *led_cdev,
+ 
+ 	pca963x = container_of(led_cdev, struct pca963x_led, led_cdev);
+ 
++	if (pca963x->chip->custom) {
++		return 0;
++	}
++
+ 	time_on = *delay_on;
+ 	time_off = *delay_off;
+ 
+@@ -322,6 +380,10 @@ pca963x_dt_init(struct i2c_client *client, struct pca963x_chipdef *chip)
+ 	else
+ 		pdata->blink_type = PCA963X_SW_BLINK;
+ 
++	dev_info(&client->dev, "PCA963X_HW_BLINK %s\n",
++			(pdata->blink_type == PCA963X_HW_BLINK) ?
++			"ON" : "OFF");
++
+ 	return pdata;
+ }
+ 
+@@ -396,7 +458,7 @@ static int pca963x_probe(struct i2c_client *client,
+ 		if (pdata && i < pdata->leds.num_leds) {
+ 			if (pdata->leds.leds[i].name)
+ 				snprintf(pca963x[i].name,
+-					 sizeof(pca963x[i].name), "pca963x:%s",
++					 sizeof(pca963x[i].name), "%s",
+ 					 pdata->leds.leds[i].name);
+ 			if (pdata->leds.leds[i].default_trigger)
+ 				pca963x[i].led_cdev.default_trigger =
+@@ -409,7 +471,19 @@ static int pca963x_probe(struct i2c_client *client,
+ 				 client->addr, i);
+ 
+ 		pca963x[i].led_cdev.name = pca963x[i].name;
+-		pca963x[i].led_cdev.brightness_set = pca963x_led_set;
++
++		if (pdata->leds.leds[i].name[0] == 'r') {
++			pca963x[i].led_cdev.brightness_set = pca963x_red_led_set;
++		}
++		else if (pdata->leds.leds[i].name[0] == 'g') {
++			pca963x[i].led_cdev.brightness_set = pca963x_green_led_set;
++		}
++		else if (pdata->leds.leds[i].name[0] == 'b') {
++			pca963x[i].led_cdev.brightness_set = pca963x_blue_led_set;
++		}
++		else {
++			pca963x[i].led_cdev.brightness_set = pca963x_led_set;
++		}
+ 
+ 		if (pdata && pdata->blink_type == PCA963X_HW_BLINK)
+ 			pca963x[i].led_cdev.blink_set = pca963x_blink_set;
