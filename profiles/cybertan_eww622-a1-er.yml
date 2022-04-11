@@ -1,0 +1,32 @@
+---
+profile: cybertan_eww622_a1_er
+target: ipq807x
+subtarget: ipq807x
+description: Build image for the CyberTan EWW622-A1-ER
+image: bin/targets/ipq807x/ipq807x/openwrt-ipq807x-cybertan_eww622_a1_er-squashfs-sysupgrade.tar
+feeds:
+  - name: ipq807x
+    path: ../../feeds/ipq807x
+  - name: cybertan
+    path: ../../feeds/cybertan
+include:
+  - wifi-ax
+  - ucentral-ap
+packages:
+  - usbutils
+  - e2fsprogs
+  - fdisk
+  - wireless-tools
+  - kmod-fs-configfs
+  - kmod-fs-msdos
+  - kmod-fs-ntfs
+  - kmod-fs-vfat
+  - kmod-fuse
+  - kmod-usb-serial-qualcomm
+  - libpcap
+  - libpam
+  - liblzma
+  - libbz2
+  - libext2fs
+diffconfig: |
+  CONFIG_USB_GADGET_SUPPORT=y

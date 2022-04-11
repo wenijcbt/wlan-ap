@@ -82,7 +82,8 @@ case "$FIRMWARE" in
 	tplink,ex227|\
 	tplink,ex447|\
 	yuncore,ax840|\
-	sercomm,wallaby)
+	sercomm,wallaby|\
+	cybertan,eww622-a1-er)
                 caldata_extract "0:ART" 0x1000 0x20000
 		;;
 	esac

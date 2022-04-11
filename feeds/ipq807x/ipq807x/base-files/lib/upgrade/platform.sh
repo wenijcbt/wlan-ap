@@ -1,5 +1,39 @@
 . /lib/functions/system.sh
 
+find_mmc_part() {
+	local DEVNAME PARTNAME
+
+	if grep -q "$1" /proc/mtd; then
+		echo "" && return 0
+	fi
+
+	for DEVNAME in /sys/block/mmcblk*/mmcblk*p*; do
+		PARTNAME=$(grep PARTNAME ${DEVNAME}/uevent | cut -f2 -d'=')
+		[ "$PARTNAME" = "$1" ] && echo "/dev/$(basename $DEVNAME)" && return 0
+	done
+}
+
+do_flash_emmc() {
+	local bin=$1
+	local emmcblock=$2
+
+	dd if=/dev/zero of=${emmcblock}
+	dd if=/tmp/${bin} of=${emmcblock}
+}
+
+qca_do_mmc_upgrade() {
+	local tar_file="$1"
+
+	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
+	board_dir=${board_dir%/}
+
+	tar xf $tar_file -C /tmp
+	do_flash_emmc ${board_dir}/kernel $(find_mmc_part "0:HLOS")
+	do_flash_emmc ${board_dir}/kernel $(find_mmc_part "0:HLOS_1")
+	do_flash_emmc ${board_dir}/root $(find_mmc_part "rootfs")
+	do_flash_emmc ${board_dir}/root $(find_mmc_part "rootfs_1")
+}
+
 qca_do_upgrade() {
         local tar_file="$1"
 
@@ -26,6 +60,7 @@ platform_check_image() {
 	cig,wf194c4|\
 	cig,wf196|\
 	cybertan,eww622-a1|\
+	cybertan,eww622-a1-er|\
 	cybertan,eww610-a1|\
 	glinet,ax1800|\
 	glinet,axt1800|\
@@ -59,6 +94,9 @@ platform_do_upgrade() {
 	case $board in
 	cig,wf188)
 		qca_do_upgrade $1
+		;;
+	cybertan,eww622-a1-er)
+		qca_do_mmc_upgrade $1
 		;;
 	cig,wf188n|\
 	cig,wf194c|\

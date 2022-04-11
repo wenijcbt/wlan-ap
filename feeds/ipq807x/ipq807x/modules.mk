@@ -18,6 +18,38 @@ endef
 
 $(eval $(call KernelPackage,usb-phy-ipq807x))
 
+define KernelPackage/usb-gadget
+  TITLE:=USB Gadget support
+  KCONFIG:=CONFIG_USB_GADGET
+  HIDDEN:=1
+  FILES:=\
+        $(LINUX_DIR)/drivers/usb/gadget/udc/udc-core.ko
+  AUTOLOAD:=$(call AutoLoad,21,udc-core,1)
+  DEPENDS:=@USB_GADGET_SUPPORT
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-gadget/description
+ Kernel support for USB Gadget mode
+endef
+
+$(eval $(call KernelPackage,usb-gadget))
+
+define KernelPackage/usb-lib-composite
+  TITLE:=USB lib composite
+  KCONFIG:=CONFIG_USB_LIBCOMPOSITE
+  DEPENDS:=+kmod-usb-gadget +kmod-fs-configfs
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/drivers/usb/gadget/libcomposite.ko
+  AUTOLOAD:=$(call AutoLoad,50,libcomposite)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-lib-composite/description
+ Lib Composite
+endef
+
+$(eval $(call KernelPackage,usb-lib-composite))
 
 define KernelPackage/qrtr_mproc
   TITLE:= Ath11k Specific kernel configs for IPQ807x and IPQ60xx

@@ -31,6 +31,7 @@ ALLWIFIBOARDS:= \
 	cig-wf196 \
 	cybertan-eww622-a1 \
 	cybertan-eww610-a1 \
+	cybertan-eww622-a1-er \
 	edgecore-eap101 \
 	gl-ax1800 \
 	sercomm-wallaby \
@@ -55,6 +56,11 @@ endef
 define Package/ath11k-wifi-qcom-ipq8074
 $(call Package/ath11k-wifi-default)
     TITLE:=board-2.bin for QCOM IPQ807x eval kits
+endef
+
+define Package/ath11k-wifi-cybertan-eww622-a1-er
+$(call Package/ath11k-wifi-default)
+    TITLE:=board-2.bin for Cybertan IPQ8072 eval kits
 endef
 
 define Package/ath11k-wifi-qcom-ipq6018
@@ -174,11 +180,17 @@ define Package/ath11k-wifi-gl-ax1800/install
 	$(INSTALL_DATA) ./board-gl-ax1800.bin.IPQ6018 $(1)/lib/firmware/ath11k/IPQ6018/hw1.0/board-2.bin
 endef
 
+define Package/ath11k-wifi-cybertan-eww622-a1-er/install
+	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/IPQ8074/hw2.0/
+	$(INSTALL_DATA) ./board-2.bin.cybertan.IPQ8072 $(1)/lib/firmware/ath11k/IPQ8074/hw2.0/board-2.bin
+endef
+
 $(eval $(call generate-ath11k-wifi-package,cig-wf188,Cigtech WF188))
 $(eval $(call generate-ath11k-wifi-package,cig-wf188n,Cigtech WF188n))
 $(eval $(call generate-ath11k-wifi-package,cig-wf194c,Cigtech WF194c))
 $(eval $(call generate-ath11k-wifi-package,cig-wf194c4,Cigtech WF194c4))
 $(eval $(call generate-ath11k-wifi-package,cig-wf196,Cigtech WF196))
+$(eval $(call generate-ath11k-wifi-package,cybertan-eww622-a1-er,CyberTan EWW622 A1 ER))
 $(eval $(call generate-ath11k-wifi-package,cybertan-eww622-a1,CyberTan EWW622 A1))
 $(eval $(call generate-ath11k-wifi-package,cybertan-eww610-a1,CyberTan EWW610 A1))
 $(eval $(call generate-ath11k-wifi-package,sercomm-wallaby,Sercomm Kiwi))

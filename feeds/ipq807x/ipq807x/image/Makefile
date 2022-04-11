@@ -16,6 +16,7 @@ define Device/Default
   IMAGES := sysupgrade.tar nand-factory.bin
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
+  IMAGE/emmc-factory.bin := qsdk-ipq-factory-nor
   KERNEL_NAME := Image
   KERNEL = kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS = kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb

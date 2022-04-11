@@ -9,6 +9,16 @@ define Device/qcom_hk01
 endef
 TARGET_DEVICES += qcom_hk01
 
+define Device/cybertan_eww622_a1_er
+  DEVICE_TITLE := Cybertan EWW622_A1_ER
+  DEVICE_DTS := qcom-ipq807x-eww622-a1-er
+  DEVICE_DTS_CONFIG=config@hk01
+  SUPPORTED_DEVICES := cybertan,eww622-a1-er
+  DEVICE_PACKAGES := ath11k-wifi-cybertan-eww622-a1-er
+  IMAGES := sysupgrade.tar emmc-factory.bin
+endef
+TARGET_DEVICES += cybertan_eww622_a1_er
+
 define Device/qcom_hk14
   DEVICE_TITLE := Qualcomm Hawkeye HK14
   DEVICE_DTS := qcom-ipq807x-hk14
