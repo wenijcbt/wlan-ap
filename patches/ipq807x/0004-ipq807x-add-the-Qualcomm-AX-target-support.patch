@@ -113,25 +113,6 @@ index 0000000000..6c429f1852
 +config_foreach ubootenv_add_app_config ubootenv
 +
 +exit 0
-diff --git a/toolchain/kernel-headers/Makefile b/toolchain/kernel-headers/Makefile
-index c33f26d46d..06236b5a47 100644
---- a/toolchain/kernel-headers/Makefile
-+++ b/toolchain/kernel-headers/Makefile
-@@ -12,6 +12,14 @@ BUILD_DIR := $(KERNEL_BUILD_DIR)
- override QUILT:=
- override HOST_QUILT:=
- 
-+include $(INCLUDE_DIR)/target.mk
-+
-+ifeq ($(KERNEL_PATCHVER),4.4)
-+  KERNEL_PATCHVER := 5.10
-+  KERNEL_NAME_SUFFIX:=
-+endif
-+
-+include $(INCLUDE_DIR)/kernel-version.mk
- include $(INCLUDE_DIR)/kernel.mk
- 
- PKG_NAME:=linux
 -- 
 2.25.1
 

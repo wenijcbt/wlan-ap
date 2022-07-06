@@ -93,6 +93,11 @@ $(call Package/ath11k-wifi-default)
     TITLE:=gl-ax1800 bdf
 endef
 
+define Package/ath11k-wifi-motorola-q14
+$(call Package/ath11k-wifi-default)
+    TITLE:=motorola q14 bdf
+endef
+
 define ath11k-wifi-install-one-to
   $(INSTALL_DIR)  $(2)/lib/firmware/$(3)/
   $(INSTALL_DATA) $(1) $(2)/lib/firmware/$(3)/board.bin
@@ -185,6 +190,13 @@ define Package/ath11k-wifi-cybertan-eww622-a1-er/install
 	$(INSTALL_DATA) ./board-2.bin.cybertan.IPQ8072 $(1)/lib/firmware/ath11k/IPQ8074/hw2.0/board-2.bin
 endef
 
+define Package/ath11k-wifi-motorola-q14/install
+	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/IPQ5018/hw1.0/
+	$(INSTALL_DIR) $(1)/lib/firmware/ath11k/qcn6122/hw1.0/
+	$(INSTALL_DATA) ./board-motorol-q14.bin.IPQ5018 $(1)/lib/firmware/ath11k/IPQ5018/hw1.0/board.bin
+	$(INSTALL_DATA) ./board-2-motorol-q14.bin.QCN6122 $(1)/lib/firmware/ath11k/qcn6122/hw1.0/board-2.bin
+endef
+
 $(eval $(call generate-ath11k-wifi-package,cig-wf188,Cigtech WF188))
 $(eval $(call generate-ath11k-wifi-package,cig-wf188n,Cigtech WF188n))
 $(eval $(call generate-ath11k-wifi-package,cig-wf194c,Cigtech WF194c))
@@ -210,3 +222,4 @@ $(eval $(call BuildPackage,ath11k-wifi-qcom-ipq8074))
 $(eval $(call BuildPackage,ath11k-wifi-qcom-ipq6018))
 $(eval $(call BuildPackage,ath11k-wifi-qcom-qcn9000))
 $(eval $(call BuildPackage,ath11k-wifi-cig-wf196_6g))
+$(eval $(call BuildPackage,ath11k-wifi-motorola-q14))

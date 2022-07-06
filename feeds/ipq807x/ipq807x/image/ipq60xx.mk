@@ -1,16 +1,5 @@
 KERNEL_LOADADDR := 0x41008000
 
-define Device/cig_wf188
-  DEVICE_TITLE := Cigtech WF-188
-  DEVICE_DTS := qcom-ipq6018-cig-wf188
-  DEVICE_DTS_CONFIG := config@cp03-c1
-  SUPPORTED_DEVICES := cig,wf188
-  IMAGES := sysupgrade.tar
-  IMAGE/sysupgrade.tar/squashfs := append-rootfs | pad-rootfs | sysupgrade-tar rootfs=$$$$@ | append-metadata
-  DEVICE_PACKAGES := ath11k-wifi-cig-wf188 uboot-env
-endef
-TARGET_DEVICES += cig_wf188
-
 define Device/cig_wf188n
   DEVICE_TITLE := Cigtech WF-188n
   DEVICE_DTS := qcom-ipq6018-cig-wf188n
@@ -43,7 +32,7 @@ define Device/edgecore_eap101
   DEVICE_DTS := qcom-ipq6018-edgecore-eap101
   DEVICE_DTS_CONFIG := config@cp01-c1
   SUPPORTED_DEVICES := edgecore,eap101
-  DEVICE_PACKAGES := ath11k-wifi-edgecore-eap101 uboot-envtools
+  DEVICE_PACKAGES := ath11k-wifi-edgecore-eap101 uboot-envtools -kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom kmod-usb3 kmod-usb2
 endef
 TARGET_DEVICES += edgecore_eap101
 
@@ -52,7 +41,7 @@ define Device/wallys_dr6018
   DEVICE_DTS := qcom-ipq6018-wallys-dr6018
   DEVICE_DTS_CONFIG := config@cp01-c4
   SUPPORTED_DEVICES := wallys,dr6018
-  DEVICE_PACKAGES := ath11k-wifi-wallys-dr6018 uboot-envtools
+  DEVICE_PACKAGES := ath11k-wifi-wallys-dr6018 uboot-envtools -kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom kmod-usb3 kmod-usb2
 endef
 TARGET_DEVICES += wallys_dr6018
 
@@ -87,7 +76,7 @@ define Device/glinet_axt1800
   DEVICE_DTS := qcom-ipq6018-gl-axt1800
   SUPPORTED_DEVICES := glinet,axt1800
   DEVICE_DTS_CONFIG := config@cp03-c1
-  DEVICE_PACKAGES := ath11k-wifi-gl-ax1800 -kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom kmod-usb3
+  DEVICE_PACKAGES := ath11k-wifi-gl-axt1800 -kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom kmod-usb3
 endef
 TARGET_DEVICES += glinet_axt1800
 

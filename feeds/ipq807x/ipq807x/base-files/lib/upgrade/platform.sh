@@ -33,6 +33,8 @@ qca_do_mmc_upgrade() {
 	do_flash_emmc ${board_dir}/root $(find_mmc_part "rootfs")
 	do_flash_emmc ${board_dir}/root $(find_mmc_part "rootfs_1")
 }
+RAMFS_COPY_BIN='fw_printenv fw_setenv'
+RAMFS_COPY_DATA='/etc/fw_env.config /var/lock/fw_printenv.lock'
 
 qca_do_upgrade() {
         local tar_file="$1"
@@ -47,6 +49,50 @@ qca_do_upgrade() {
                 tar Oxf $tar_file ${board_dir}/root | mtd -j "$UPGRADE_BACKUP" write - rootfs
         else
                 tar Oxf $tar_file ${board_dir}/root | mtd write - rootfs
+        fi
+}
+
+find_mmc_part() {
+	local DEVNAME PARTNAME
+
+	if grep -q "$1" /proc/mtd; then
+		echo "" && return 0
+	fi
+
+	for DEVNAME in /sys/block/mmcblk*/mmcblk*p*; do
+		PARTNAME=$(grep PARTNAME ${DEVNAME}/uevent | cut -f2 -d'=')
+		[ "$PARTNAME" = "$1" ] && echo "/dev/$(basename $DEVNAME)" && return 0
+	done
+}
+
+do_flash_emmc() {
+	local tar_file=$1
+	local emmcblock=$(find_mmc_part $2)
+	local board_dir=$3
+	local part=$4
+
+	[ -z "$emmcblock" ] && {
+		echo failed to find $2
+		return
+	}
+
+	echo erase $4
+	dd if=/dev/zero of=${emmcblock} 2> /dev/null
+	echo flash $4
+	tar Oxf $tar_file ${board_dir}/$part | dd of=${emmcblock}
+}
+
+emmc_do_upgrade() {
+	local tar_file="$1"
+
+	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
+	board_dir=${board_dir%/}
+	do_flash_emmc $tar_file '0:HLOS' $board_dir kernel
+	do_flash_emmc $tar_file 'rootfs' $board_dir root
+
+	local emmcblock="$(find_mmc_part "rootfs_data")"
+        if [ -e "$emmcblock" ]; then
+                mkfs.ext4 -F "$emmcblock"
         fi
 }
 
@@ -75,6 +121,7 @@ platform_check_image() {
 	tplink,ex227|\
 	tplink,ex447|\
 	yuncore,ax840|\
+	motorola,q14|\
 	qcom,ipq6018-cp01|\
 	qcom,ipq807x-hk01|\
 	qcom,ipq807x-hk14|\
@@ -97,6 +144,8 @@ platform_do_upgrade() {
 		;;
 	cybertan,eww622-a1-er)
 		qca_do_mmc_upgrade $1
+	motorola,q14)
+		emmc_do_upgrade $1
 		;;
 	cig,wf188n|\
 	cig,wf194c|\
@@ -107,8 +156,6 @@ platform_do_upgrade() {
 	edgecore,eap104|\
 	glinet,ax1800|\
 	glinet,axt1800|\
-	hfcl,ion4xi|\
-	hfcl,ion4xe|\
 	qcom,ipq6018-cp01|\
 	qcom,ipq807x-hk01|\
 	qcom,ipq807x-hk14|\
@@ -120,11 +167,35 @@ platform_do_upgrade() {
 	tplink,ex227)	
 		nand_upgrade_tar "$1"
 		;;
-	edgecore,eap106|\
-	edgecore,eap102|\
-	edgecore,eap101)
+	hfcl,ion4xi|\
+	hfcl,ion4xe)
+		if grep -q rootfs_1 /proc/cmdline; then
+			CI_UBIPART="rootfs"
+			fw_setenv primary 0 || exit 1
+		else
+			CI_UBIPART="rootfs_1"
+			fw_setenv primary 1 || exit 1
+		fi
+		nand_upgrade_tar "$1"
+		;;
+	edgecore,eap106)
 		CI_UBIPART="rootfs1"
 		[ "$(find_mtd_chardev rootfs)" ] && CI_UBIPART="rootfs"
+		nand_upgrade_tar "$1"
+		;;
+	edgecore,eap101|\
+	edgecore,eap102)
+		if [ "$(find_mtd_chardev rootfs)" ]; then
+			CI_UBIPART="rootfs"
+		else
+			if grep -q rootfs1 /proc/cmdline; then
+				CI_UBIPART="rootfs2"
+				fw_setenv active 2 || exit 1
+			else
+				CI_UBIPART="rootfs1"
+				fw_setenv active 1 || exit 1
+			fi
+		fi
 		nand_upgrade_tar "$1"
 		;;
 	esac
